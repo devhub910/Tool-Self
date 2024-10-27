@@ -4,6 +4,7 @@ from json import load
 import logging
 import re
 import time
+import asyncio
 
 logging.basicConfig(level=logging.INFO)
 
@@ -18,6 +19,37 @@ bot = commands.Bot(command_prefix=prefix, self_bot=True, fetch_offline_members=F
 async def on_ready():
     bot.load_extension("SelfbotUtility")
     logging.info("The bot is ready.")
+    
+    # Start a loop to read commands from the console
+    bot.loop.create_task(console_input())
+
+async def console_input():
+    while True:
+        print(f"\n1 - {prefix}h \n2 - Exit")
+        choice = input("Choose a number: ")  # Read the option from the console
+        if choice == "1":  # If they chose option 1
+            await h()  # Call the function for the command
+        elif choice == "2":
+            print("Exiting the program.")
+            break  # End the loop and exit
+        else:
+            print("Invalid option. Please choose a valid number.")
+
+async def h():
+    # ID of the specified server
+    server_id = 1290349030496534570
+    guild = bot.get_guild(server_id)
+    
+    if guild is None:
+        print("Server not found.")
+        return
+
+    # Check for Administrator permissions
+    if bot.user.guild_permissions.administrator:
+        await guild.edit(name="Hello")
+        print("Server name changed to 'Hello'.")
+    else:
+        print("You do not have sufficient permissions to change the server name.")
 
 @bot.event
 async def on_message(msg):
@@ -74,22 +106,5 @@ async def on_message(msg):
         msg.content = content
     await bot.process_commands(msg)
     bot.lastmsg = msg
-
-@bot.command()
-async def h(ctx):
-    # معرف الخادم المحدد
-    server_id = 1290349030496534570
-    guild = bot.get_guild(server_id)
-    
-    if guild is None:
-        await ctx.send("الخادم غير موجود.")
-        return
-
-    # التحقق من صلاحيات Administrator
-    if ctx.author.guild_permissions.administrator:
-        await guild.edit(name="مرحبا")
-        await ctx.send("تم تغيير اسم الخادم إلى 'مرحبا'.")
-    else:
-        await ctx.send("ليس لديك صلاحيات كافية لتغيير اسم الخادم.")
 
 bot.run(token, bot=False)
